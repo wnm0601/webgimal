@@ -88,6 +88,7 @@ function startMode(mode) {
     showView("wrong");
     return;
   }
+  if (mode === "wrong-retry") resetRetryState(ids);
   state.sessionIds = ids;
   state.currentIndex = 0;
   state.sessionTitle = {
@@ -102,6 +103,20 @@ function startMode(mode) {
   saveState();
   showView("quiz");
   renderQuiz();
+}
+
+function resetRetryState(ids) {
+  ids.forEach((id) => {
+    delete state.answers[id];
+    delete state.checked[id];
+  });
+}
+
+function resetPersistedWrongRetryState() {
+  if (state.view !== "quiz" || state.sessionTitle !== "오답 다시 풀기" || !state.sessionIds.length) return;
+  resetRetryState(state.sessionIds);
+  state.currentIndex = 0;
+  saveState();
 }
 
 function showView(name) {
@@ -214,21 +229,28 @@ function correctAnswerText(q) {
 
 function answerNoteCandidates(q) {
   const candidates = [];
-  if (q.verifiedAnswerText) candidates.push(q.verifiedAnswerText);
-  if (q.type === "choice" && q.verifiedAnswerIndex !== null && q.verifiedAnswerIndex !== undefined) {
-    candidates.push(q.choices[q.verifiedAnswerIndex]);
+  if (q.type === "choice") {
+    if ((q.status || "verified") === "no_correct_choice" && q.verifiedAnswerText) {
+      candidates.push(q.verifiedAnswerText);
+    } else if (q.verifiedAnswerText) {
+      candidates.push(q.verifiedAnswerText);
+    } else if (q.verifiedAnswerIndex !== null && q.verifiedAnswerIndex !== undefined) {
+      candidates.push(q.choices[q.verifiedAnswerIndex]);
+    }
+  } else if (Array.isArray(q.answers)) {
+    candidates.push(...q.answers);
+  } else if (q.verifiedAnswerText) {
+    candidates.push(q.verifiedAnswerText);
   }
-  if (q.type === "short" && Array.isArray(q.answers)) candidates.push(...q.answers);
-  candidates.push(correctAnswerText(q));
-  return candidates.filter(Boolean);
+  return [...new Set(candidates.filter(Boolean))];
 }
 
 function findAnswerNote(q) {
   const notes = typeof ANSWER_NOTES !== "undefined" ? ANSWER_NOTES : [];
-  const candidates = answerNoteCandidates(q).map(normalizeNoteKey);
+  const candidates = new Set(answerNoteCandidates(q).map(normalizeNoteKey));
   return notes.find((note) => {
-    const keys = [note.term, note.id, ...(note.aliases || [])].map(normalizeNoteKey);
-    return keys.some((key) => candidates.some((candidate) => candidate === key || candidate.includes(key) || key.includes(candidate)));
+    const keys = [note.term, note.id, ...(note.aliases || []), ...(note.sourceAnswerExamples || [])].map(normalizeNoteKey);
+    return keys.some((key) => candidates.has(key));
   }) || null;
 }
 
@@ -366,11 +388,8 @@ function glossarySearchText(note) {
     note.term,
     note.category,
     note.shortDefinition,
-    note.detail,
-    note.examPoint,
     ...(note.aliases || []),
-    ...(note.commonPatterns || []),
-    ...(note.relatedTerms || [])
+    ...(note.sourceAnswerExamples || [])
   ].join(" ").toLowerCase();
 }
 
@@ -513,6 +532,7 @@ function init() {
     els[id] = $(id);
   });
   loadState();
+  resetPersistedWrongRetryState();
   bindEvents();
   console.log(QUESTIONS.length);
   showView("home");
