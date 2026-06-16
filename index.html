@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>웹프로그래밍 기말 270문제 퀴즈</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand" type="button" data-action="home">
+          <span class="brand-mark">WQ</span>
+          <span>
+            <strong>웹프로그래밍 기말 퀴즈</strong>
+            <small>270문제 암기 훈련</small>
+          </span>
+        </button>
+        <div class="topbar-actions">
+          <button class="ghost-btn" type="button" data-action="glossary">개념노트</button>
+          <button class="ghost-btn" type="button" data-action="wrong-note">오답노트</button>
+          <button class="ghost-btn" type="button" data-action="reset-progress">진행 초기화</button>
+        </div>
+      </header>
+
+      <main>
+        <section id="homeView" class="view active">
+          <div class="home-grid">
+            <section class="intro-panel">
+              <p class="eyebrow">Final review</p>
+              <h1>시험 직전, 빠르게 풀고 틀린 것만 다시 보기</h1>
+              <p class="intro-copy">단답형과 4지선다형을 섞어 풀고, 오답은 자동으로 저장됩니다.</p>
+              <div class="mode-grid">
+                <button class="mode-card primary" type="button" data-mode="all">전체 문제 풀기</button>
+                <button class="mode-card" type="button" data-mode="short">단답형만 풀기</button>
+                <button class="mode-card" type="button" data-mode="choice">4지선다형만 풀기</button>
+                <button class="mode-card" type="button" data-mode="random">랜덤 문제 풀기</button>
+                <button class="mode-card" type="button" data-action="glossary">개념노트</button>
+                <button class="mode-card" type="button" data-mode="errors">오류 문제 모드</button>
+                <button class="mode-card" type="button" data-mode="resume">이어 풀기</button>
+                <button class="mode-card" type="button" data-mode="wrong">오답노트</button>
+              </div>
+            </section>
+
+            <aside class="stats-panel">
+              <div class="stat-card">
+                <span>전체 문제</span>
+                <strong id="totalCount">0</strong>
+              </div>
+              <div class="stat-card">
+                <span>푼 문제</span>
+                <strong id="answeredCount">0</strong>
+              </div>
+              <div class="stat-card">
+                <span>정답률</span>
+                <strong id="accuracyRate">0%</strong>
+              </div>
+              <div class="stat-card alert">
+                <span>오답 수</span>
+                <strong id="wrongCount">0</strong>
+              </div>
+              <div class="stat-card">
+                <span>오류/검수 문제</span>
+                <strong id="errorCount">0</strong>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="quizView" class="view">
+          <div class="quiz-layout">
+            <section class="quiz-card">
+              <div class="quiz-meta">
+                <span id="questionProgress">1 / 270</span>
+                <span id="categoryBadge" class="badge">카테고리</span>
+                <span id="typeBadge" class="badge muted">유형</span>
+              </div>
+              <h2 id="questionText"></h2>
+              <div id="answerArea" class="answer-area"></div>
+              <div class="quiz-actions">
+                <button class="secondary-btn" type="button" data-action="prev">이전</button>
+                <button class="primary-btn" type="button" data-action="check">정답 확인</button>
+                <button class="secondary-btn" type="button" data-action="next">다음</button>
+              </div>
+              <div class="utility-actions">
+                <button class="ghost-btn" type="button" data-action="bookmark" id="bookmarkBtn">북마크</button>
+                <button class="ghost-btn" type="button" data-action="toggle-wrong" id="wrongToggleBtn">오답노트 추가</button>
+              </div>
+              <div id="feedback" class="feedback hidden"></div>
+            </section>
+
+            <aside class="side-panel">
+              <div>
+                <span class="side-label">현재 세트</span>
+                <strong id="sessionTitle">전체 문제</strong>
+              </div>
+              <div class="progress-track">
+                <div id="progressBar" class="progress-bar"></div>
+              </div>
+              <button class="secondary-btn full" type="button" data-action="finish">결과 보기</button>
+              <button class="ghost-btn full" type="button" data-action="home">홈으로</button>
+            </aside>
+          </div>
+        </section>
+
+        <section id="resultView" class="view">
+          <section class="result-panel">
+            <p class="eyebrow">Result</p>
+            <h2>풀이 결과</h2>
+            <div id="resultStats" class="result-grid"></div>
+            <div id="categoryStats" class="category-list"></div>
+            <div class="mode-grid compact">
+              <button class="mode-card" type="button" data-mode="wrong-retry">오답만 다시 풀기</button>
+              <button class="mode-card" type="button" data-mode="errors">오류 문제 확인</button>
+              <button class="mode-card" type="button" data-mode="all">전체 다시 풀기</button>
+              <button class="mode-card" type="button" data-mode="random30">랜덤 30문제 풀기</button>
+              <button class="mode-card" type="button" data-action="home">홈으로 돌아가기</button>
+            </div>
+          </section>
+        </section>
+
+        <section id="wrongView" class="view">
+          <section class="wrong-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Wrong note</p>
+                <h2>오답노트</h2>
+              </div>
+              <div class="topbar-actions">
+                <button class="secondary-btn" type="button" data-action="retry-wrong">오답만 다시 풀기</button>
+                <button class="ghost-btn danger" type="button" data-action="clear-wrong">전체 오답 초기화</button>
+              </div>
+            </div>
+            <label class="toggle-line">
+              <input id="showAnswersToggle" type="checkbox" />
+              정답 보이기
+            </label>
+            <div id="wrongList" class="wrong-list"></div>
+          </section>
+        </section>
+
+        <section id="glossaryView" class="view">
+          <section class="glossary-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Concept note</p>
+                <h2>정답 단어노트</h2>
+              </div>
+              <button class="ghost-btn" type="button" data-action="home">홈으로</button>
+            </div>
+            <div class="glossary-tools">
+              <input id="glossarySearch" class="short-input" type="search" placeholder="프롬프트, GitHub, WFM 검색" />
+              <select id="glossaryCategory" class="filter-select">
+                <option value="all">전체 카테고리</option>
+                <option value="AI 기획">AI 기획</option>
+                <option value="바이브 코딩">바이브 코딩</option>
+                <option value="배포 및 관리">배포 및 관리</option>
+                <option value="HTML">HTML</option>
+                <option value="피지컬 AI">피지컬 AI</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div id="glossaryCount" class="side-label"></div>
+            <div id="glossaryList" class="glossary-list"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="questions.js?v=review-status"></script>
+    <script src="glossary.js?v=concept-note"></script>
+    <script src="script.js?v=concept-note"></script>
+  </body>
+</html>
